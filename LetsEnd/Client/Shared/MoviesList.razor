@@ -1,0 +1,20 @@
+﻿<input type="checkbox" @bind="displayButtons" />
+<div class="movies-container">
+
+    <GenericList List="Movies">
+        <ElementTemplate Context="movie">
+            <IndividualMovie Movie="movie" DisplayButtons="displayButtons"
+                             DeleteMovie="DeleteMovie" />
+
+        </ElementTemplate>
+    </GenericList>
+</div>
+    @code {
+
+        [Parameter] public List<Movie> Movies { get; set; }
+        bool displayButtons = false;
+        private void DeleteMovie(Movie movie)
+        {
+            Movies.Remove(movie);
+        }
+    }
