@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using LetsEnd.Server.Helpers;
 
 namespace LetsEnd.Server
 {
@@ -26,9 +27,12 @@ namespace LetsEnd.Server
         {
             services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<IFileStorageService, InAppStorageService>();
+            services.AddHttpContextAccessor();
 
-            services.AddControllersWithViews();
-            
+            services.AddControllersWithViews()       
+               ;
+
             services.AddRazorPages();
             services.AddResponseCompression(opts =>
             {

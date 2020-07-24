@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using LetsEnd.Client.Helpers;
 using Blazor.FileReader;
+using LetsEnd.Client.Repository;
 
 namespace LetsEnd.Client
 {
@@ -28,6 +29,11 @@ namespace LetsEnd.Client
         {
             services.AddOptions();
             services.AddTransient<IRepository, RepositoryInMemory>();
+            services.AddScoped<IHttpService, HttpService>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IPersonRepository, PersonRepository>();
+            services.AddScoped<IMoviesRepository, MoviesRepository>();
+
             services.AddFileReaderService(options => options.InitializeOnFirstCall = true);
 
 

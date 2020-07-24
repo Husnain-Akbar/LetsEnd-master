@@ -1,18 +1,25 @@
 ﻿@page "/"
-@inject IRepository  repository
-<div>
-    <h3>
-        Movie
-    </h3>
-    <MoviesList Movies="movies"/>
-   
-</div>
+@inject IMoviesRepository  moviesRepository
+    <div>
+        <h3>
+            In theaters
+        </h3>
+        <MoviesList Movies="Intheaters" />
+
+        <h3>
+            Up Coming Releases
+        </h3>
+        <MoviesList Movies="upcomingReleases" />
+    </div>
 @code{
-    private List<Movie> movies;
+    private List<Movie> Intheaters;
+    private List<Movie> upcomingReleases;
     protected  async override  Task OnInitializedAsync()
     {
 
-        movies = repository.GetMovies();
+        var response = await moviesRepository.GetIndexPageDTO();
+        Intheaters = response.Intheaters;
+        upcomingReleases = response.UpcomingReleases;
     }
 
 }
