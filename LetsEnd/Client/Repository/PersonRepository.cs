@@ -27,6 +27,19 @@ namespace LetsEnd.Client.Repository
             }
         }
 
+        public async Task UpdatePerson(Person person)
+        {
+            var response = await httpService.Put(url, person);
+            if (!response.Success)
+            {
+                throw new ApplicationException(await response.GetBody());
+            }
+        }
+
+        public async Task<Person> GetPersonById(int id)
+        {
+            return await httpService.GetHelper<Person>($"{url}/{id}");
+        }
         public async Task<List<Person>> GetPeople()
         {
             var response = await httpService.Get<List<Person>>(url);

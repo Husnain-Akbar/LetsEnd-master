@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using LetsEnd.Server.Helpers;
 using LetsEnd.Shared.DTOs;
 using LetsEnd.Shared.Entities;
@@ -18,10 +19,15 @@ namespace LetsEnd.Server.Controllers
         private readonly ApplicationDbContext context;
         private readonly IFileStorageService fileStorageService;
 
-        public MoviesController(ApplicationDbContext context, IFileStorageService fileStorageService)
+        public IMapper Mapper { get; }
+
+        public MoviesController(ApplicationDbContext context,
+            IFileStorageService fileStorageService,
+            IMapper mapper)
         {
             this.context = context;
             this.fileStorageService = fileStorageService;
+            Mapper = mapper;
         }
 
         [HttpGet]
@@ -76,6 +82,58 @@ namespace LetsEnd.Server.Controllers
 
                 }).ToList();
             return model;
+
+        }
+
+        [HttpGet("update/{id}")]
+        public async Task<ActionResult<MovieUpdateDTO>> PutGet(int id)
+        {
+            var movieActionResult = await Get(id);
+            if(movieActionResult.Result is NoContentResult) { return NotFound(); }
+
+            var movieDetailDTO = movieActionResult.Value;
+            var selectedGenresIds = movieDetailDTO.Genres.Select(x => x.Id).ToList();
+            var NotSelectedGenres = await context.Genres
+                                .Where(x => !selectedGenresIds.Contains(x.Id))
+                                .ToListAsync();
+            var model = new MovieUpdateDTO();
+            model.Movie = movieDetailDTO.Movie;
+            model.SelectedGenres = movieDetailDTO.Genres;
+            model.NotSelectedGenres = NotSelectedGenres;
+            model.Actors = movieDetailDTO.Actors;
+            return model;
+
+         }
+
+        [HttpPut]
+        public async Task<ActionResult> Put(Movie movie)
+        {
+            var movieDB = await context.Movies.FirstOrDefaultAsync(x => x.Id == movie.Id);
+            if (movieDB == null) { return NotFound(); }
+
+            movieDB = Mapper.Map(movie, movieDB);
+            if (!string.IsNullOrWhiteSpace(movie.Poster))
+            {
+                var personPicture = Convert.FromBase64String(movie.Poster);
+                movieDB.Poster = await fileStorageService.EditFile(personPicture
+                    , "jpg", "movies", movieDB
+                    .Poster);
+            }
+            await context.Database.ExecuteSqlInterpolatedAsync($"delete from MoviesActors where MovieId = {movie.Id}; delete from MoviesGenres where MovieId = {movie.Id}");
+
+            if (movie.MoviesActors != null)
+            {
+                for (int i = 0; i < movie.MoviesActors.Count; i++)
+                {
+                    movie.MoviesActors[i].Order = i + 1;
+                }
+            }
+
+            movieDB.MoviesActors = movie.MoviesActors;
+            movieDB.MoviesGenres = movie.MoviesGenres;
+
+            await context.SaveChangesAsync();
+            return NoContent();
 
         }
         [HttpPost]

@@ -20,22 +20,17 @@ namespace LetsEnd.Client.Repository
 
         public async Task<IndexPageDTO> GetIndexPageDTO()
         {
-            return await Get<IndexPageDTO>(url);
+            return await httpService.GetHelper<IndexPageDTO>(url);
         }
 
         public async Task<DetailsMovieDTO> GetDetailsMovieDTO(int id)
         {
-            return await Get<DetailsMovieDTO>($"{url}/{id}");
+            return await httpService.GetHelper<DetailsMovieDTO>($"{url}/{id}");
         }
 
-        private async Task<T> Get<T>(string url)
+        public async Task<MovieUpdateDTO> GetMovieForUpdate(int id)
         {
-            var response = await httpService.Get<T>(url);
-            if (!response.Success)
-            {
-                throw new ApplicationException(await response.GetBody());
-            }
-            return response.Response;
+            return await httpService.GetHelper<MovieUpdateDTO>($"{url}/update/{id}");
         }
         public async Task<int> CreateMovie(Movie movie)
         {
@@ -47,5 +42,14 @@ namespace LetsEnd.Client.Repository
             return response.Response;
         }
 
+        public async Task UpdateMovie(Movie movie)
+        {
+            var response = await httpService.Put(url, movie);
+            if (!response.Success)
+            {
+                throw new ApplicationException(await response.GetBody());
+            }
+
+        }
     }
 }

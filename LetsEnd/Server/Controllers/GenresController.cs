@@ -33,6 +33,23 @@ namespace LetsEnd.Server.Controllers
             return await context.Genres.ToListAsync();
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Genre>> Get(int id)
+        {
+            var genre = await context.Genres.FirstOrDefaultAsync(x => x.Id == id);
+            if (genre == null)
+            {
+                return NotFound();
+            }
+            return genre;
+        }
 
+        [HttpPut]
+        public async Task<ActionResult> Put(Genre genre)
+        {
+            context.Attach(genre).State = EntityState.Modified;
+            await context.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }

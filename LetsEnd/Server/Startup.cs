@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using LetsEnd.Server.Helpers;
+using AutoMapper;
 
 namespace LetsEnd.Server
 {
@@ -27,11 +28,17 @@ namespace LetsEnd.Server
         {
             services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddAutoMapper(typeof(Startup));
             services.AddScoped<IFileStorageService, InAppStorageService>();
             services.AddHttpContextAccessor();
 
-            services.AddControllersWithViews()       
-               ;
+            // services.AddControllersWithViews();
+
+            services.AddMvc()
+    .AddNewtonsoftJson(options =>
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
 
             services.AddRazorPages();
             services.AddResponseCompression(opts =>
@@ -65,8 +72,7 @@ options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
-                endpoints.MapControllers();
+                endpoints.MapDefaultControllerRoute();
                 endpoints.MapFallbackToFile("index.html");
             });
         }

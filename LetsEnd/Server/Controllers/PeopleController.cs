@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using LetsEnd.Server.Helpers;
 using LetsEnd.Shared.Entities;
 using Microsoft.AspNetCore.Http;
@@ -17,14 +18,19 @@ namespace LetsEnd.Server.Controllers
         private readonly ApplicationDbContext context;
         private readonly IFileStorageService fileStorageService;
 
-        public PeopleController(ApplicationDbContext context ,IFileStorageService fileStorageService)
+        public IMapper Mapper;
+
+        public PeopleController(ApplicationDbContext context, 
+            IFileStorageService fileStorageService,
+            IMapper mapper)
         {
             this.context = context;
             this.fileStorageService = fileStorageService;
+            Mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<ActionResult<int>>  Post(Person person)
+        public async Task<ActionResult<int>> Post(Person person)
         {
             if (!string.IsNullOrWhiteSpace(person.Picture))
             {
@@ -44,6 +50,34 @@ namespace LetsEnd.Server.Controllers
             return await context.People.ToListAsync();
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Person>> Get(int id)
+        {
+            var person = await context.People.FirstOrDefaultAsync(x => x.Id == id);
+            if (person == null)
+            {
+                return NotFound();
+            }
+            return person;
+        }
+
+        [HttpPut]
+        public async Task<ActionResult> Put(Person person)
+        {
+            var personDB = await context.People.FirstOrDefaultAsync(x => x.Id == person.Id);
+            if (personDB == null) { return NotFound();}
+
+            personDB = Mapper.Map(person, personDB);
+            if (!string.IsNullOrWhiteSpace(person.Picture))
+            {
+                var personPicture = Convert.FromBase64String(person.Picture);
+                personDB.Picture = await fileStorageService.EditFile(personPicture
+                    , "jpg", "people", personDB
+                    .Picture);
+            }
+            await context.SaveChangesAsync();
+            return NoContent();
+        }
         [HttpGet("search/{searchText}")]
         public async Task<ActionResult<List<Person>>> FilterByName(string searchText)
         {

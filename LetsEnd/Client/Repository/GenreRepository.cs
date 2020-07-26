@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LetsEnd.Client.Repository
 {
-    public class GenreRepository:IGenreRepository
+    public class GenreRepository : IGenreRepository
     {
         private readonly IHttpService httpService;
         private string url = "api/genres";
@@ -24,6 +24,17 @@ namespace LetsEnd.Client.Repository
                 throw new ApplicationException(await response.GetBody());
             }
         }
+
+        public async Task UpdateGenre(Genre genre)
+        {
+            var response = await httpService.Put(url, genre);
+            if (!response.Success)
+            {
+                throw new ApplicationException(await response.GetBody());
+            }
+
+
+        }
         public async Task<List<Genre>> GetGenres()
         {
             var response = await httpService.Get<List<Genre>>(url);
@@ -34,6 +45,15 @@ namespace LetsEnd.Client.Repository
             return response.Response;
         }
 
+        public async Task<Genre> GetGenre(int id)
+        {
+            var response = await httpService.Get<Genre>($"{url}/{id}");
+            if (!response.Success)
+            {
+                throw new ApplicationException(await response.GetBody());
+            }
+            return response.Response;
 
+        }
     }
 }
